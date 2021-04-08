@@ -4,7 +4,8 @@
 #define LOCALS_BUCKET_COUNT 64
 
 /* This is the tree node structure */
-typedef struct n {
+typedef struct n
+{
     node_index_t type;
     void *data;
     struct s *entry;
@@ -13,15 +14,19 @@ typedef struct n {
 } node_t;
 
 // Export the initializer function, it is needed by the parser
-void node_init (
-    node_t *nd, node_index_t type, void *data, uint64_t n_children, ...
-);
+void node_init(
+    node_t *nd, node_index_t type, void *data, uint64_t n_children, ...);
 
-typedef enum {
-    SYM_GLOBAL_VAR, SYM_FUNCTION, SYM_PARAMETER, SYM_LOCAL_VAR
+typedef enum
+{
+    SYM_GLOBAL_VAR,
+    SYM_FUNCTION,
+    SYM_PARAMETER,
+    SYM_LOCAL_VAR
 } symtype_t;
 
-typedef struct s {
+typedef struct s
+{
     char *name;
     symtype_t type;
     node_t *node;
@@ -30,7 +35,14 @@ typedef struct s {
     tlhash_t *locals;
 } symbol_t;
 
-int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, uint64_t scope);
+typedef struct ssi
+{
+    struct ssi *enclosing;
+    uint64_t value;
+    uint64_t depth;
+} scope_frame;
+
+int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_frame* scope_stack);
 void create_symbol_table(void);
 void print_symbol_table(void);
 void print_symbols(void);
@@ -39,6 +51,6 @@ void destroy_symbol_table(void);
 void find_globals(void);
 void bind_names(symbol_t *function, node_t *root);
 void destroy_symtab(tlhash_t *symtab);
-void *get_id_key(uint64_t scope, char *id);
-uint64_t get_key_length(char *id);
+void *get_id_key(scope_frame *scope, char *id);
+uint64_t get_key_length(scope_frame *scope, char *id);
 #endif
