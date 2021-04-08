@@ -1,4 +1,6 @@
 #include <vslc.h>
+#include <ir.h>
+#include <tlhash.h>
 
 // Externally visible, for the generator
 extern tlhash_t *global_names;
@@ -139,9 +141,85 @@ destroy_symbol_table ( void )
 }
 
 
-void
-find_globals ( void )
+void find_globals ( void )
 {
+    // Initialize the global symbol table because apparently that wasn't done in the skeleton code 😡
+    global_names = (tlhash_t *) malloc(sizeof(tlhash_t));
+    // Not expecting a massive amount of globals
+    tlhash_init(global_names, 32);
+
+    node_t *node = root;
+
+    // The root node should point to the global list pretty much immediately
+    while (node->type != GLOBAL_LIST)
+    {
+        node = root->children[0];
+    }
+
+    // Globals are the children of the GLOBAL_LIST
+    for (int i = 0; i < node->n_children; i++)
+    {
+        node_t *global_node = node->children[i];
+        switch(global_node->type)
+        {
+            case DECLARATION:
+            {
+                 // Look for variable lists inside global variable declarations
+                 for (int j = 0; j < global_node->n_children; j++)
+                 {
+                    node_t *global_child = global_node->children[j];
+                    if (global_child->type != VARIABLE_LIST)
+                       continue;
+
+                    // Add all global identifiers to the symbol table
+                    for (int k = 0; k < global_child->n_children; k++)
+                    {
+                        node_t *identifier = global_child->children[k];
+                        symbol_t *symbol = (symbol_t *) malloc(sizeof(symbol_t));
+                        symbol->name = strdup(identifier->data);
+                        symbol->type = SYM_GLOBAL_VAR;
+                        symbol->node = identifier;
+
+                        // Insert the symbol into the globals symbol table
+                        tlhash_insert(global_names, symbol->name, strlen(symbol->name), symbol);
+
+                        // Update the node to have a pointer to its symbol table entry
+                        identifier->entry = symbol;
+                    }
+                 }
+                 break;
+            }
+
+            case FUNCTION:
+            {
+                 // Function declarations should look for a function name identifier
+                 // Finding parameter symbols is left for bind_names, although we *could* do it here
+                 for (int j = 0; j < global_node->n_children; j++)
+                 {
+                     node_t *global_child = global_node->children[j];
+                     // Function name
+                     if (global_child->type == IDENTIFIER_DATA)
+                     {
+                         symbol_t *func_symbol = (symbol_t *) malloc(sizeof(symbol_t));
+                         func_symbol->name = strdup(global_child->data);
+                         func_symbol->type = SYM_FUNCTION;
+                         func_symbol->node = global_node;
+                         func_symbol->nparms = 0;
+                         // Alloc and init a new hashtable for function locals
+                         func_symbol->locals = (tlhash_t *) malloc(sizeof(tlhash_t));
+                         tlhash_init(func_symbol->locals, 64);
+
+                         // Insert into the globals table
+                         tlhash_insert(global_names, func_symbol->name, strlen(func_symbol->name), func_symbol);
+
+                         global_child->entry = func_symbol;
+                         break;
+                     }
+                 }
+                break;
+            }
+        }
+    }
 }
 
 void

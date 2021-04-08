@@ -17,8 +17,10 @@ main ( int argc, char **argv )
     yyparse();
     simplify_tree ( &root, root );
     node_print ( root, 0 );
-    // call function to create symbol table
-	// then call function to print symbol table
+
+    create_symbol_table();
+	print_symbol_table();
+
     destroy_subtree ( root );
 	// call function to destroy symbol table
 
