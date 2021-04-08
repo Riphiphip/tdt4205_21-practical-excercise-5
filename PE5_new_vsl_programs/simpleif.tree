@@ -1,0 +1,32 @@
+String table:
+0: "Equal!"
+-- 
+Globals:
+dingdong: function 0:
+	8 local variables, 7 are parameters:
+	f: parameter 5
+	a: parameter 0
+	x: local var 0
+	d: parameter 3
+	c: parameter 2
+	g: parameter 6
+	b: parameter 1
+	e: parameter 4
+-- 
+Linked local var 0 ('x')
+Linked parameter 0 ('a')
+Linked parameter 1 ('b')
+Linked parameter 2 ('c')
+Linked parameter 3 ('d')
+Linked parameter 4 ('e')
+Linked parameter 5 ('f')
+Linked parameter 6 ('g')
+Linked local var 0 ('x')
+Linked string 0
+Linked local var 0 ('x')
+Linked local var 0 ('x')
+Linked local var 0 ('x')
+Linked local var 0 ('x')
+Linked local var 0 ('x')
+Linked local var 0 ('x')
+Linked local var 0 ('x')

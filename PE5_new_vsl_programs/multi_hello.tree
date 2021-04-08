@@ -1,0 +1,52 @@
+String table:
+0: "Morna"
+-- 
+Globals:
+x: global variable
+hello: function 0:
+	0 local variables, 0 are parameters:
+z: global variable
+w: global variable
+goodbye: function 2:
+	8 local variables, 8 are parameters:
+	f: parameter 5
+	a: parameter 0
+	h: parameter 7
+	d: parameter 3
+	c: parameter 2
+	g: parameter 6
+	b: parameter 1
+	e: parameter 4
+y: global variable
+tralala: function 1:
+	5 local variables, 1 are parameters:
+	x: local var 0
+	w: local var 3
+	z: local var 2
+	y: local var 1
+	wang: parameter 0
+-- 
+Linked global var 'w'
+Linked function 2 ('goodbye')
+Linked global var 'w'
+Linked global var 'w'
+Linked local var 0 ('x')
+Linked local var 1 ('y')
+Linked local var 2 ('z')
+Linked local var 3 ('w')
+Linked parameter 0 ('wang')
+Linked parameter 0 ('wang')
+Linked local var 0 ('x')
+Linked local var 1 ('y')
+Linked local var 2 ('z')
+Linked local var 3 ('w')
+Linked parameter 0 ('a')
+Linked parameter 1 ('b')
+Linked parameter 2 ('c')
+Linked parameter 3 ('d')
+Linked parameter 4 ('e')
+Linked parameter 5 ('f')
+Linked parameter 6 ('g')
+Linked parameter 7 ('h')
+Linked string 0
+Linked function 1 ('tralala')

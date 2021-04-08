@@ -1,0 +1,67 @@
+String table:
+0: "Testing plain call/return and expression evaluation"
+1: "The deftion returned y:="
+2: "My parameters are a:="
+3: "and b:="
+4: "Their sum is c:="
+5: "Their difference is c:="
+6: "Their product is c:="
+7: "Their ratio is c:="
+8: "(-c):="
+9: "The sum of their squares is "
+-- 
+Globals:
+main: function 0:
+	4 local variables, 1 are parameters:
+	a: parameter 0
+	x: local var 0
+	z: local var 2
+	y: local var 1
+test: function 1:
+	3 local variables, 2 are parameters:
+	a: parameter 0
+	c: local var 0
+	b: parameter 1
+-- 
+Linked string 0
+Linked local var 0 ('x')
+Linked local var 2 ('z')
+Linked local var 1 ('y')
+Linked function 1 ('test')
+Linked local var 0 ('x')
+Linked local var 2 ('z')
+Linked string 1
+Linked local var 1 ('y')
+Linked string 2
+Linked parameter 0 ('a')
+Linked string 3
+Linked parameter 1 ('b')
+Linked local var 0 ('c')
+Linked parameter 0 ('a')
+Linked parameter 1 ('b')
+Linked string 4
+Linked local var 0 ('c')
+Linked local var 0 ('c')
+Linked parameter 0 ('a')
+Linked parameter 1 ('b')
+Linked string 5
+Linked local var 0 ('c')
+Linked local var 0 ('c')
+Linked parameter 0 ('a')
+Linked parameter 1 ('b')
+Linked string 6
+Linked local var 0 ('c')
+Linked local var 0 ('c')
+Linked parameter 0 ('a')
+Linked parameter 1 ('b')
+Linked string 7
+Linked local var 0 ('c')
+Linked string 8
+Linked local var 0 ('c')
+Linked string 9
+Linked parameter 0 ('a')
+Linked parameter 0 ('a')
+Linked parameter 1 ('b')
+Linked parameter 1 ('b')
+Linked parameter 0 ('a')
+Linked parameter 1 ('b')

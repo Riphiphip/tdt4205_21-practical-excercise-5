@@ -1,0 +1,48 @@
+String table:
+0: "Parameter a is a:="
+1: "Outer scope has a:="
+2: "Inner scope has a:="
+3: "and b:="
+4: "b was updated to "
+5: "in inner scope"
+6: "Outer scope (still) has a:="
+7: "Return expression (a-1) using a:="
+8: "Nested scopes coming up..."
+9: "x:="
+-- 
+Globals:
+test_me: function 1:
+	4 local variables, 1 are parameters:
+	a: parameter 0
+	a: local var 0
+	a: local var 2
+	b: local var 1
+start: function 0:
+	1 local variables, 0 are parameters:
+	x: local var 0
+-- 
+Linked string 8
+Linked local var 0 ('x')
+Linked function 1 ('test_me')
+Linked string 9
+Linked local var 0 ('x')
+Linked string 0
+Linked parameter 0 ('a')
+Linked local var 0 ('a')
+Linked string 1
+Linked local var 0 ('a')
+Linked local var 2 ('a')
+Linked local var 1 ('b')
+Linked string 2
+Linked local var 2 ('a')
+Linked string 3
+Linked local var 1 ('b')
+Linked local var 1 ('b')
+Linked string 4
+Linked local var 1 ('b')
+Linked string 5
+Linked string 6
+Linked local var 0 ('a')
+Linked string 7
+Linked parameter 0 ('a')
+Linked parameter 0 ('a')

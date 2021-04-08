@@ -1,0 +1,8 @@
+String table:
+0: "Hello, world!"
+-- 
+Globals:
+hello: function 0:
+	0 local variables, 0 are parameters:
+-- 
+Linked string 0

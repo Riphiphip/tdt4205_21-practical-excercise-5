@@ -1,0 +1,14 @@
+String table:
+-- 
+Globals:
+unary_minus_precedence: function 0:
+	3 local variables, 0 are parameters:
+	a: local var 0
+	c: local var 2
+	b: local var 1
+-- 
+Linked local var 0 ('a')
+Linked local var 1 ('b')
+Linked local var 2 ('c')
+Linked local var 0 ('a')
+Linked local var 1 ('b')

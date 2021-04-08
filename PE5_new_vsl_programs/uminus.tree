@@ -1,0 +1,22 @@
+String table:
+0: "a is"
+1: "and b is"
+2: "a/(-b) is"
+3: "10/(-2) is"
+-- 
+Globals:
+negatives: function 0:
+	2 local variables, 0 are parameters:
+	a: local var 0
+	b: local var 1
+-- 
+Linked local var 0 ('a')
+Linked local var 1 ('b')
+Linked string 0
+Linked local var 0 ('a')
+Linked string 1
+Linked local var 1 ('b')
+Linked string 2
+Linked local var 0 ('a')
+Linked local var 1 ('b')
+Linked string 3

@@ -1,0 +1,21 @@
+String table:
+0: "foobar"
+1: "Skip..."
+-- 
+Globals:
+while_test: function 0:
+	1 local variables, 0 are parameters:
+	a: local var 0
+-- 
+Linked local var 0 ('a')
+Linked local var 0 ('a')
+Linked local var 0 ('a')
+Linked string 0
+Linked local var 0 ('a')
+Linked local var 0 ('a')
+Linked local var 0 ('a')
+Linked local var 0 ('a')
+Linked string 1
+Linked local var 0 ('a')
+Linked local var 0 ('a')
+Linked local var 0 ('a')

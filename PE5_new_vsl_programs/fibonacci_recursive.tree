@@ -1,0 +1,30 @@
+String table:
+0: "Fibonacci number #"
+1: "is"
+-- 
+Globals:
+fibonacci_recursive: function 0:
+	2 local variables, 1 are parameters:
+	f: local var 0
+	n: parameter 0
+fibonacci_number: function 1:
+	2 local variables, 1 are parameters:
+	y: local var 0
+	n: parameter 0
+-- 
+Linked local var 0 ('f')
+Linked function 1 ('fibonacci_number')
+Linked parameter 0 ('n')
+Linked string 0
+Linked parameter 0 ('n')
+Linked string 1
+Linked local var 0 ('f')
+Linked local var 0 ('y')
+Linked parameter 0 ('n')
+Linked local var 0 ('y')
+Linked function 1 ('fibonacci_number')
+Linked parameter 0 ('n')
+Linked function 1 ('fibonacci_number')
+Linked parameter 0 ('n')
+Linked local var 0 ('y')
+Linked local var 0 ('y')

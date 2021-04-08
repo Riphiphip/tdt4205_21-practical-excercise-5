@@ -1,0 +1,38 @@
+String table:
+-- 
+Globals:
+f: function 0:
+	0 local variables, 0 are parameters:
+h: function 2:
+	3 local variables, 2 are parameters:
+	a: parameter 0
+	x: local var 0
+	b: parameter 1
+g: function 1:
+	9 local variables, 3 are parameters:
+	a: parameter 0
+	u: local var 0
+	x: local var 3
+	z: local var 5
+	c: parameter 2
+	y: local var 4
+	w: local var 2
+	v: local var 1
+	b: parameter 1
+-- 
+Linked local var 0 ('u')
+Linked local var 1 ('v')
+Linked local var 2 ('w')
+Linked function 1 ('g')
+Linked local var 3 ('x')
+Linked local var 4 ('y')
+Linked local var 5 ('z')
+Linked local var 0 ('u')
+Linked local var 1 ('v')
+Linked local var 2 ('w')
+Linked local var 0 ('x')
+Linked local var 0 ('x')
+Linked local var 0 ('x')
+Linked local var 0 ('x')
+Linked local var 0 ('x')
+Linked local var 0 ('x')

@@ -1,0 +1,27 @@
+String table:
+0: "2*(3-1) := "
+1: "2*3-1 := "
+-- 
+Globals:
+precedence: function 0:
+	4 local variables, 0 are parameters:
+	a: local var 0
+	d: local var 3
+	c: local var 2
+	b: local var 1
+-- 
+Linked local var 0 ('a')
+Linked local var 1 ('b')
+Linked local var 2 ('c')
+Linked local var 3 ('d')
+Linked local var 0 ('a')
+Linked local var 1 ('b')
+Linked local var 2 ('c')
+Linked string 0
+Linked local var 3 ('d')
+Linked local var 3 ('d')
+Linked local var 0 ('a')
+Linked local var 1 ('b')
+Linked local var 2 ('c')
+Linked string 1
+Linked local var 3 ('d')

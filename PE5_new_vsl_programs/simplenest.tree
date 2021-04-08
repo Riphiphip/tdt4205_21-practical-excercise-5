@@ -1,0 +1,45 @@
+String table:
+0: "Outer x is"
+1: "y is"
+2: "parm is"
+3: "Inner x is"
+4: "y is"
+5: "parm is"
+6: "Outer x is"
+7: "y is"
+8: "parm is"
+-- 
+Globals:
+hello: function 0:
+	1 local variables, 0 are parameters:
+	t: local var 0
+test: function 1:
+	4 local variables, 1 are parameters:
+	a: parameter 0
+	x: local var 0
+	x: local var 2
+	y: local var 1
+-- 
+Linked local var 0 ('t')
+Linked function 1 ('test')
+Linked local var 0 ('x')
+Linked local var 1 ('y')
+Linked string 0
+Linked local var 0 ('x')
+Linked string 1
+Linked local var 1 ('y')
+Linked string 2
+Linked parameter 0 ('a')
+Linked local var 2 ('x')
+Linked string 3
+Linked local var 2 ('x')
+Linked string 4
+Linked local var 1 ('y')
+Linked string 5
+Linked parameter 0 ('a')
+Linked string 6
+Linked local var 0 ('x')
+Linked string 7
+Linked local var 1 ('y')
+Linked string 8
+Linked parameter 0 ('a')

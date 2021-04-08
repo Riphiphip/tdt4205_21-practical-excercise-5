@@ -1,0 +1,17 @@
+String table:
+0: "Bigger"
+1: "Smaller"
+2: "Equal"
+-- 
+Globals:
+test: function 0:
+	1 local variables, 1 are parameters:
+	a: parameter 0
+-- 
+Linked parameter 0 ('a')
+Linked parameter 0 ('a')
+Linked string 0
+Linked parameter 0 ('a')
+Linked string 1
+Linked parameter 0 ('a')
+Linked string 2

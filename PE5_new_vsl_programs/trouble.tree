@@ -1,0 +1,9 @@
+String table:
+0: "wang"
+-- 
+Globals:
+hello: function 0:
+	1 local variables, 1 are parameters:
+	wang: parameter 0
+-- 
+Linked string 0

@@ -1,0 +1,26 @@
+String table:
+0: "Testing if printf format codes are left alone."
+1: "\nOutput *should* contain percent characters, but no integers."
+2: "\tHello, world! %d %d"
+3: "Adding a splash of ANSI color codes - This will only work in a color terminal"
+4: "\t\033[31mRed"
+5: "\t\033[32mGreen"
+6: "\t\033[34mBlue"
+7: "\033[0m"
+-- 
+Globals:
+escapecodes: function 0:
+	2 local variables, 0 are parameters:
+	a: local var 0
+	b: local var 1
+-- 
+Linked string 0
+Linked string 1
+Linked local var 0 ('a')
+Linked local var 1 ('b')
+Linked string 2
+Linked string 3
+Linked string 4
+Linked string 5
+Linked string 6
+Linked string 7

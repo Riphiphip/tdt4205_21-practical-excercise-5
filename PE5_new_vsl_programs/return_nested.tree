@@ -1,0 +1,22 @@
+String table:
+0: "t is"
+1: "This never executes"
+-- 
+Globals:
+hello: function 0:
+	0 local variables, 0 are parameters:
+test: function 1:
+	4 local variables, 1 are parameters:
+	a: parameter 0
+	x: local var 0
+	x: local var 2
+	y: local var 1
+-- 
+Linked string 0
+Linked function 1 ('test')
+Linked local var 0 ('x')
+Linked local var 1 ('y')
+Linked local var 2 ('x')
+Linked local var 2 ('x')
+Linked parameter 0 ('a')
+Linked string 1

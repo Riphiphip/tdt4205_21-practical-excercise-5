@@ -1,0 +1,52 @@
+String table:
+0: "Calling my_deftion with parameters"
+1: "The returned result is"
+2: "The other returned result is"
+3: "Parameter s is"
+4: "Parameter t is"
+5: "The sum of their squares is"
+-- 
+Globals:
+defall: function 0:
+	3 local variables, 0 are parameters:
+	x: local var 0
+	z: local var 2
+	y: local var 1
+my_other_deftion: function 2:
+	1 local variables, 0 are parameters:
+	x: local var 0
+my_deftion: function 1:
+	3 local variables, 2 are parameters:
+	t: parameter 1
+	u: local var 0
+	s: parameter 0
+-- 
+Linked local var 0 ('x')
+Linked local var 1 ('y')
+Linked string 0
+Linked local var 0 ('x')
+Linked local var 1 ('y')
+Linked local var 2 ('z')
+Linked function 1 ('my_deftion')
+Linked local var 0 ('x')
+Linked local var 1 ('y')
+Linked string 1
+Linked local var 2 ('z')
+Linked local var 2 ('z')
+Linked function 2 ('my_other_deftion')
+Linked string 2
+Linked local var 2 ('z')
+Linked local var 0 ('u')
+Linked parameter 0 ('s')
+Linked parameter 0 ('s')
+Linked parameter 1 ('t')
+Linked parameter 1 ('t')
+Linked string 3
+Linked parameter 0 ('s')
+Linked string 4
+Linked parameter 1 ('t')
+Linked string 5
+Linked local var 0 ('u')
+Linked local var 0 ('u')
+Linked local var 0 ('x')
+Linked local var 0 ('x')

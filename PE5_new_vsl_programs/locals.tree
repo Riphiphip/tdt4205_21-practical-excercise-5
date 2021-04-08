@@ -1,0 +1,31 @@
+String table:
+0: "Inner a is "
+1: "Outer a is "
+2: "Global k is "
+-- 
+Globals:
+j: global variable
+i: global variable
+nesting_scopes: function 0:
+	11 local variables, 3 are parameters:
+	x: parameter 0
+	a: local var 0
+	d: local var 3
+	f: local var 5
+	a: local var 6
+	z: parameter 2
+	b: local var 7
+	e: local var 4
+	c: local var 2
+	y: parameter 1
+	b: local var 1
+k: global variable
+-- 
+Linked local var 0 ('a')
+Linked local var 6 ('a')
+Linked string 0
+Linked local var 6 ('a')
+Linked string 1
+Linked local var 0 ('a')
+Linked string 2
+Linked global var 'k'

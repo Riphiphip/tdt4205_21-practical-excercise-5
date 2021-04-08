@@ -1,0 +1,44 @@
+String table:
+0: "The square root of"
+1: "is"
+-- 
+Globals:
+a: global variable
+x: global variable
+newton: function 0:
+	2 local variables, 1 are parameters:
+	square_root: local var 0
+	n: parameter 0
+fourty_two: function 2:
+	1 local variables, 1 are parameters:
+	x: parameter 0
+improve: function 1:
+	3 local variables, 2 are parameters:
+	estimate: parameter 1
+	next: local var 0
+	n: parameter 0
+c: global variable
+z: global variable
+y: global variable
+b: global variable
+-- 
+Linked local var 0 ('square_root')
+Linked function 1 ('improve')
+Linked parameter 0 ('n')
+Linked string 0
+Linked parameter 0 ('n')
+Linked string 1
+Linked local var 0 ('square_root')
+Linked local var 0 ('next')
+Linked parameter 1 ('estimate')
+Linked parameter 1 ('estimate')
+Linked parameter 1 ('estimate')
+Linked parameter 0 ('n')
+Linked parameter 1 ('estimate')
+Linked local var 0 ('next')
+Linked parameter 1 ('estimate')
+Linked local var 0 ('next')
+Linked function 1 ('improve')
+Linked parameter 0 ('n')
+Linked local var 0 ('next')
+Linked parameter 0 ('x')

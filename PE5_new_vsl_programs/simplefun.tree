@@ -1,0 +1,19 @@
+String table:
+0: "Parameter s is"
+1: "t is "
+-- 
+Globals:
+defall: function 0:
+	1 local variables, 0 are parameters:
+	x: local var 0
+my_deftion: function 1:
+	2 local variables, 2 are parameters:
+	t: parameter 1
+	s: parameter 0
+-- 
+Linked local var 0 ('x')
+Linked function 1 ('my_deftion')
+Linked string 0
+Linked parameter 0 ('s')
+Linked string 1
+Linked parameter 1 ('t')

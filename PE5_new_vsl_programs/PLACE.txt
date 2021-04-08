@@ -1,0 +1,1 @@
+I am at generator shift arith left, it's not working with register shift

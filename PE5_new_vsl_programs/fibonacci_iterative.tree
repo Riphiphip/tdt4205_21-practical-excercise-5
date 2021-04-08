@@ -1,0 +1,36 @@
+String table:
+0: "Fibonacci number #"
+1: "is"
+-- 
+Globals:
+fibonacci_iterative: function 0:
+	5 local variables, 1 are parameters:
+	w: local var 0
+	f: local var 3
+	n: parameter 0
+	y: local var 2
+	x: local var 1
+-- 
+Linked local var 0 ('w')
+Linked parameter 0 ('n')
+Linked local var 1 ('x')
+Linked local var 2 ('y')
+Linked local var 3 ('f')
+Linked local var 0 ('w')
+Linked local var 0 ('w')
+Linked local var 0 ('w')
+Linked local var 0 ('w')
+Linked local var 3 ('f')
+Linked local var 2 ('y')
+Linked local var 1 ('x')
+Linked local var 1 ('x')
+Linked local var 2 ('y')
+Linked local var 2 ('y')
+Linked local var 3 ('f')
+Linked local var 0 ('w')
+Linked local var 0 ('w')
+Linked local var 3 ('f')
+Linked string 0
+Linked parameter 0 ('n')
+Linked string 1
+Linked local var 3 ('f')

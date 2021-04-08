@@ -1,0 +1,8 @@
+def unary_minus_precedence()
+begin
+    var a, b, c
+    a := -1*2
+    b := (-1)*2
+    c := a >> 3 | b << 3
+    return 0
+end

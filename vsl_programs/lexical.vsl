@@ -1,0 +1,47 @@
+// This program doesn't do anything interesting, it's just to exercise
+// most of the lexical entities.
+
+def main() begin                   // def, identifier (func. def.)
+    var a, _a1, a_2             // var, identifier, comma operator
+    print "Hello, world!"       // print keyword, string literal
+	print ""                    // Whitespace: line starts on a tab character
+    print "Hello, \"world\"!"   // String literal with escaped double quotes
+
+    _a1 := 10                   // Assignment operator and number constant
+    a_2 := 2
+
+    a := _a1 + a_2              // Plus operator
+    print _a1, "+", a_2, ":=", a
+
+    a := _a1 - a_2              // Minus operator
+    print _a1, "-", a_2, ":=", a
+
+    a := _a1 + (-a_2)           // Parentheses, unary minus operator
+    print _a1, "+ (-", a_2, ") :=", a
+
+    a := _a1 * a_2              // Multiply operator
+    print _a1, "*", a_2, ":=", a
+
+    a := _a1 / a_2              // Divide operator
+    print _a1, "/", a_2, ":=", a
+
+    if a > 0 then               // if, then, FI, single statement
+        print a
+
+    // This loop prints the integers 5 through 0, skipping 2
+    while a > 0 do              // while/DO, block statements
+    begin
+        if a - 3 > 0 then       // if/then/else/FI
+            a := a - 1
+        else
+        begin
+            a := a - 1
+            print "Skip..."
+            continue            // continue
+        end
+        print a
+    end
+
+    return 0                    // return keyword and number constant
+end
+
