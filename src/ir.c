@@ -117,7 +117,12 @@ void print_bindings(node_t *root)
 
 void destroy_symbol_table(void)
 {
-    destroy_symtab();
+    destroy_symtab(global_names);
+
+    // Now clean up the global list of strings
+    for (int i = 0; i < stringc; i++)
+        free(string_list[i]);
+    free(string_list);
 }
 
 void find_globals(void)
@@ -146,25 +151,31 @@ void find_globals(void)
             // Look for variable lists inside global variable declarations
             for (int j = 0; j < global_node->n_children; j++)
             {
-                node_t *global_child = global_node->children[j];
-                if (global_child->type != VARIABLE_LIST)
-                    continue;
-
-                // Add all global identifiers to the symbol table
-                for (int k = 0; k < global_child->n_children; k++)
+                // Look for variable lists inside global variable declarations
+                for (int j = 0; j < global_node->n_children; j++)
                 {
-                    node_t *identifier = global_child->children[k];
-                    symbol_t *symbol = (symbol_t *)malloc(sizeof(symbol_t));
-                    symbol->name = strdup(identifier->data);
-                    symbol->type = SYM_GLOBAL_VAR;
-                    symbol->node = identifier;
+                   node_t *global_child = global_node->children[j];
+                   if (global_child->type != VARIABLE_LIST)
+                      continue;
 
-                    // Insert the symbol into the globals symbol table
-                    tlhash_insert(global_names, symbol->name, strlen(symbol->name), symbol);
+                   // Add all global identifiers to the symbol table
+                   for (int k = 0; k < global_child->n_children; k++)
+                   {
+                       node_t *identifier = global_child->children[k];
+                       symbol_t *symbol = (symbol_t *) malloc(sizeof(symbol_t));
+                       symbol->name = strdup(identifier->data);
+                       symbol->type = SYM_GLOBAL_VAR;
+                       symbol->node = identifier;
+                       symbol->locals = NULL;
 
-                    // Update the node to have a pointer to its symbol table entry
-                    identifier->entry = symbol;
+                       // Insert the symbol into the globals symbol table
+                       tlhash_insert(global_names, symbol->name, strlen(symbol->name)+1, symbol);
+
+                       // Update the node to have a pointer to its symbol table entry
+                       identifier->entry = symbol;
+                   }
                 }
+                break;
             }
             break;
         }
@@ -190,7 +201,7 @@ void find_globals(void)
                     tlhash_init(func_symbol->locals, 64);
 
                     // Insert into the globals table
-                    tlhash_insert(global_names, func_symbol->name, strlen(func_symbol->name), func_symbol);
+                    tlhash_insert(global_names, func_symbol->name, strlen(func_symbol->name)+1, func_symbol);
 
                     global_child->entry = func_symbol;
                     break;
@@ -221,7 +232,7 @@ void bind_names(symbol_t *function, node_t *root)
             param->locals = NULL;
             param->node = param_node;
             param_node->entry = param;
-            tlhash_insert(function->locals, param->name, strlen(param->name), param);
+            tlhash_insert(function->locals, param->name, strlen(param->name)+1, param);
         }
     }
     size_t *seq_number = calloc(1,sizeof(size_t));
@@ -277,15 +288,16 @@ int bind_declarations(symbol_t *function, node_t *root, size_t* seq_num )
     {
         if (stringc >= n_string_list)
         {
-            string_list = realloc(string_list, n_string_list * 2 * sizeof(char*));
             if (string_list == NULL)
             {
                 return -1;
             }
+            
             n_string_list *= 2;
+            string_list = realloc(string_list, n_string_list * sizeof(char*));
         }
         string_list[stringc] = root->data;
-        root->data = malloc(sizeof(stringc));
+        root->data = malloc(sizeof(size_t));
         *(size_t *)root->data = stringc;
         stringc += 1;
         break;
@@ -294,6 +306,33 @@ int bind_declarations(symbol_t *function, node_t *root, size_t* seq_num )
     return 0;
 }
 
-void destroy_symtab(void)
+void destroy_symtab (tlhash_t *symtab)
 {
+    // tlhash_size returns the amount of elements in the hash table, each of which has an associated (string) key
+    size_t symtable_size = tlhash_size(symtab);
+    symbol_t **symbols = (symbol_t **) calloc(symtable_size, sizeof(symbol_t *));
+    tlhash_values(symtab, (void **)symbols);
+
+    for (int k = 0; k < symtable_size; k++)
+    {
+        symbol_t *symbol = symbols[k];
+
+        // Remove the reference to the symbol from the corresponding node
+        symbol->node->entry = NULL;
+        // Free all allocated data from the symbol
+        free(symbol->name);
+        // Recursively destroy local symtabs
+        if (symbol->locals != NULL)
+        {
+            destroy_symtab(symbol->locals);
+        }
+
+        // Free the symbol itself
+        free(symbol);
+    }
+
+    free(symbols);
+    // Finally, finalize and free the symtable itself
+    tlhash_finalize(symtab);
+    free(symtab);
 }
