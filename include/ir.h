@@ -30,7 +30,7 @@ typedef struct s {
     tlhash_t *locals;
 } symbol_t;
 
-int bind_declarations(symbol_t *function, node_t *root, uint64_t *seq_num);
+int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, uint64_t scope);
 void create_symbol_table(void);
 void print_symbol_table(void);
 void print_symbols(void);
@@ -39,4 +39,6 @@ void destroy_symbol_table(void);
 void find_globals(void);
 void bind_names(symbol_t *function, node_t *root);
 void destroy_symtab(tlhash_t *symtab);
+void *get_id_key(uint64_t scope, char *id);
+uint64_t get_key_length(char *id);
 #endif

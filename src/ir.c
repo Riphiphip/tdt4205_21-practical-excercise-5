@@ -154,26 +154,26 @@ void find_globals(void)
                 // Look for variable lists inside global variable declarations
                 for (int j = 0; j < global_node->n_children; j++)
                 {
-                   node_t *global_child = global_node->children[j];
-                   if (global_child->type != VARIABLE_LIST)
-                      continue;
+                    node_t *global_child = global_node->children[j];
+                    if (global_child->type != VARIABLE_LIST)
+                        continue;
 
-                   // Add all global identifiers to the symbol table
-                   for (int k = 0; k < global_child->n_children; k++)
-                   {
-                       node_t *identifier = global_child->children[k];
-                       symbol_t *symbol = (symbol_t *) malloc(sizeof(symbol_t));
-                       symbol->name = strdup(identifier->data);
-                       symbol->type = SYM_GLOBAL_VAR;
-                       symbol->node = identifier;
-                       symbol->locals = NULL;
+                    // Add all global identifiers to the symbol table
+                    for (int k = 0; k < global_child->n_children; k++)
+                    {
+                        node_t *identifier = global_child->children[k];
+                        symbol_t *symbol = (symbol_t *)malloc(sizeof(symbol_t));
+                        symbol->name = strdup(identifier->data);
+                        symbol->type = SYM_GLOBAL_VAR;
+                        symbol->node = identifier;
+                        symbol->locals = NULL;
 
-                       // Insert the symbol into the globals symbol table
-                       tlhash_insert(global_names, symbol->name, strlen(symbol->name)+1, symbol);
+                        // Insert the symbol into the globals symbol table
+                        tlhash_insert(global_names, symbol->name, strlen(symbol->name) + 1, symbol);
 
-                       // Update the node to have a pointer to its symbol table entry
-                       identifier->entry = symbol;
-                   }
+                        // Update the node to have a pointer to its symbol table entry
+                        identifier->entry = symbol;
+                    }
                 }
                 break;
             }
@@ -201,7 +201,7 @@ void find_globals(void)
                     tlhash_init(func_symbol->locals, 64);
 
                     // Insert into the globals table
-                    tlhash_insert(global_names, func_symbol->name, strlen(func_symbol->name)+1, func_symbol);
+                    tlhash_insert(global_names, func_symbol->name, strlen(func_symbol->name) + 1, func_symbol);
 
                     global_child->entry = func_symbol;
                     break;
@@ -232,11 +232,11 @@ void bind_names(symbol_t *function, node_t *root)
             param->locals = NULL;
             param->node = param_node;
             param_node->entry = param;
-            tlhash_insert(function->locals, param->name, strlen(param->name)+1, param);
+            tlhash_insert(function->locals, param->name, strlen(param->name) + 1, param);
         }
     }
-    size_t *seq_number = calloc(1,sizeof(size_t));
-    int result = bind_declarations(function, root, seq_number);
+    size_t *seq_number = calloc(1, sizeof(size_t));
+    int result = bind_declarations(function, root, seq_number, scope_id);
     free(seq_number);
     if (result != 0)
     {
@@ -248,7 +248,7 @@ void bind_names(symbol_t *function, node_t *root)
 /**
  * Traverses syntax tree to find all local variables. Also updates string table.
  **/
-int bind_declarations(symbol_t *function, node_t *root, size_t* seq_num )
+int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, uint64_t scope)
 {
     if (root == NULL)
     {
@@ -256,9 +256,17 @@ int bind_declarations(symbol_t *function, node_t *root, size_t* seq_num )
     }
     if (root->type != DECLARATION && root->type != STRING_DATA)
     {
+        if (root->type == BLOCK)
+        {
+            scope_id++;
+            scope = scope_id;
+        }
         for (int i = 0; i < root->n_children; i++)
         {
-            bind_declarations(function, root->children[i], seq_num);
+            if (bind_declarations(function, root->children[i], seq_num, scope))
+            {
+                return -1;
+            };
         }
         return 0;
     }
@@ -279,7 +287,10 @@ int bind_declarations(symbol_t *function, node_t *root, size_t* seq_num )
             var->locals = NULL;
             var->node = id_data;
             id_data->entry = var;
-            tlhash_insert(function->locals, seq_num, sizeof(size_t), var);
+            uint64_t key_len = sizeof(uint64_t) + strlen(var->name) + 1;
+            void *key = get_id_key(scope, var->name);
+            tlhash_insert(function->locals, key, get_key_length(var->name), var);
+            free(key);
             *seq_num += 1;
         }
         break;
@@ -292,9 +303,9 @@ int bind_declarations(symbol_t *function, node_t *root, size_t* seq_num )
             {
                 return -1;
             }
-            
+
             n_string_list *= 2;
-            string_list = realloc(string_list, n_string_list * sizeof(char*));
+            string_list = realloc(string_list, n_string_list * sizeof(char *));
         }
         string_list[stringc] = root->data;
         root->data = malloc(sizeof(size_t));
@@ -302,15 +313,42 @@ int bind_declarations(symbol_t *function, node_t *root, size_t* seq_num )
         stringc += 1;
         break;
     }
+    case IDENTIFIER_DATA:
+    {
+        void *key = get_id_key(scope, root->data);
+        uint64_t key_len = get_key_length(root->data);
+        void **symbol_ptr = malloc(sizeof(symbol_t **));
+        int result = tlhash_lookup(function->locals, key, key_len, symbol_ptr);
+        if (result == TLHASH_ENOENT)
+        {
+            printf("Symbol used before declaration\n");
+            return -1;
+        }
+        root->entry = *symbol_ptr;
+        break;
+    }
     }
     return 0;
 }
 
-void destroy_symtab (tlhash_t *symtab)
+void *get_id_key(uint64_t scope, char *id)
+{
+    void *key = malloc(get_key_length(id));
+    memcpy(key, &scope, sizeof(uint64_t));
+    strcpy((char *)((size_t)key + sizeof(uint64_t)), id);
+    return key;
+}
+
+uint64_t get_key_length(char *id)
+{
+    return sizeof(uint64_t) + strlen(id) + 1;
+}
+
+void destroy_symtab(tlhash_t *symtab)
 {
     // tlhash_size returns the amount of elements in the hash table, each of which has an associated (string) key
     size_t symtable_size = tlhash_size(symtab);
-    symbol_t **symbols = (symbol_t **) calloc(symtable_size, sizeof(symbol_t *));
+    symbol_t **symbols = (symbol_t **)calloc(symtable_size, sizeof(symbol_t *));
     tlhash_values(symtab, (void **)symbols);
 
     for (int k = 0; k < symtable_size; k++)
