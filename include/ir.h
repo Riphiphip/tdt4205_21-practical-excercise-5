@@ -1,6 +1,8 @@
 #ifndef IR_H
 #define IR_H
 
+#define LOCALS_BUCKET_COUNT 64
+
 /* This is the tree node structure */
 typedef struct n {
     node_index_t type;
@@ -27,4 +29,14 @@ typedef struct s {
     size_t nparms;
     tlhash_t *locals;
 } symbol_t;
+
+int bind_declarations(symbol_t *function, node_t *root);
+void create_symbol_table(void);
+void print_symbol_table(void);
+void print_symbols(void);
+void print_bindings(node_t *root);
+void destroy_symbol_table(void);
+void find_globals(void);
+void bind_names(symbol_t *function, node_t *root);
+void destroy_symtab(void);
 #endif
