@@ -14,9 +14,10 @@ size_t stringc = 0;         // Initial string count
 int
 main ( int argc, char **argv )
 {
+    string_list = malloc(n_string_list * sizeof(char*));
     yyparse();
     simplify_tree ( &root, root );
-    node_print ( root, 0 );
+    // node_print ( root, 0 );
 
     create_symbol_table();
 	print_symbol_table();
