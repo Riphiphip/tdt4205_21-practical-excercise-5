@@ -237,7 +237,8 @@ void bind_names(symbol_t *function, node_t *root)
  **/
 int bind_declarations(symbol_t *function, node_t *root)
 {
-    if (root == NULL){
+    if (root == NULL)
+    {
         return 0;
     }
     if (root->type != DECLARATION && root->type != STRING_DATA)
@@ -269,24 +270,22 @@ int bind_declarations(symbol_t *function, node_t *root)
         }
         break;
     }
-    // case STRING_DATA:
-    // {
-    //     if (stringc >= n_string_list)
-    //     {
-    //         string_list = realloc(string_list, n_string_list * 2);
-    //         printf("%p\n", string_list);
-    //         if (string_list == NULL)
-    //         {
-    //             return -1;
-    //         }
-    //         n_string_list *= 2;
-    //     }
-    //     string_list[stringc] = root->data;
-    //     root->data = malloc(sizeof(stringc));
-    //     memset(root->data, stringc, sizeof(stringc));
-    //     stringc++;
-    //     break;
-    // }
+    case STRING_DATA:
+    {
+        if (stringc >= n_string_list)
+        {
+            if (string_list == NULL)
+            {
+                return -1;
+            }
+            n_string_list += 1;
+        }
+        string_list[stringc] = root->data;
+        root->data = malloc(sizeof(stringc));
+        *(size_t *)root->data = stringc;
+        stringc += 1;
+        break;
+    }
     }
     return 0;
 }
