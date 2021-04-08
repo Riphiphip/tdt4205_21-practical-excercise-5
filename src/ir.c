@@ -117,7 +117,12 @@ void print_bindings(node_t *root)
 
 void destroy_symbol_table(void)
 {
-      destroy_symtab(global_names);
+    destroy_symtab(global_names);
+
+    // Now clean up the global list of strings
+    for (int i = 0; i < stringc; i++)
+        free(string_list[i]);
+    free(string_list);
 }
 
 void find_globals(void)
@@ -164,7 +169,7 @@ void find_globals(void)
                        symbol->locals = NULL;
 
                        // Insert the symbol into the globals symbol table
-                       tlhash_insert(global_names, symbol->name, strlen(symbol->name), symbol);
+                       tlhash_insert(global_names, symbol->name, strlen(symbol->name)+1, symbol);
 
                        // Update the node to have a pointer to its symbol table entry
                        identifier->entry = symbol;
@@ -196,7 +201,7 @@ void find_globals(void)
                     tlhash_init(func_symbol->locals, 64);
 
                     // Insert into the globals table
-                    tlhash_insert(global_names, func_symbol->name, strlen(func_symbol->name), func_symbol);
+                    tlhash_insert(global_names, func_symbol->name, strlen(func_symbol->name)+1, func_symbol);
 
                     global_child->entry = func_symbol;
                     break;
@@ -227,7 +232,7 @@ void bind_names(symbol_t *function, node_t *root)
             param->locals = NULL;
             param->node = param_node;
             param_node->entry = param;
-            tlhash_insert(function->locals, param->name, strlen(param->name), param);
+            tlhash_insert(function->locals, param->name, strlen(param->name)+1, param);
         }
     }
     int result = bind_declarations(function, root);
@@ -272,7 +277,7 @@ int bind_declarations(symbol_t *function, node_t *root)
             var->locals = NULL;
             var->node = id_data;
             id_data->entry = var;
-            tlhash_insert(function->locals, var->name, strlen(var->name), var);
+            tlhash_insert(function->locals, var->name, strlen(var->name)+1, var);
         }
         break;
     }
@@ -284,10 +289,12 @@ int bind_declarations(symbol_t *function, node_t *root)
             {
                 return -1;
             }
-            n_string_list += 1;
+            
+            n_string_list *= 2;
+            string_list = realloc(string_list, n_string_list * sizeof(char*));
         }
         string_list[stringc] = root->data;
-        root->data = malloc(sizeof(stringc));
+        root->data = malloc(sizeof(size_t));
         *(size_t *)root->data = stringc;
         stringc += 1;
         break;
