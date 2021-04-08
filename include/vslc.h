@@ -11,6 +11,7 @@
 #include "nodetypes.h"
 #include "ir.h"
 #include "y.tab.h"
+#include "tree.h"
 
 int yyerror ( const char *error );
 extern int yylineno;

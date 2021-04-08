@@ -1,3 +1,8 @@
+src/scanner.c
+src/parser.c
+src/vslc
+src/y.tab.h
+
 # Prerequisites
 *.d
 
