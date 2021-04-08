@@ -38,5 +38,5 @@ void print_bindings(node_t *root);
 void destroy_symbol_table(void);
 void find_globals(void);
 void bind_names(symbol_t *function, node_t *root);
-void destroy_symtab(void);
+void destroy_symtab(tlhash_t *symtab);
 #endif

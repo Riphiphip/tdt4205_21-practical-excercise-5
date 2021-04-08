@@ -296,11 +296,7 @@ int bind_declarations(symbol_t *function, node_t *root)
     return 0;
 }
 
-<<<<<<< HEAD
 void destroy_symtab (tlhash_t *symtab)
-=======
-void destroy_symtab(void)
->>>>>>> 5a7fbb42f594d3880ca137c1143a74a919343536
 {
     // tlhash_size returns the amount of elements in the hash table, each of which has an associated (string) key
     size_t symtable_size = tlhash_size(symtab);
