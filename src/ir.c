@@ -8,7 +8,7 @@ extern char **string_list;
 extern size_t n_string_list, stringc;
 
 uint64_t func_count = 0;
-
+uint64_t scope_id = 0;
 /* External interface */
 
 void create_symbol_table(void)
@@ -224,7 +224,9 @@ void bind_names(symbol_t *function, node_t *root)
             tlhash_insert(function->locals, param->name, strlen(param->name), param);
         }
     }
-    int result = bind_declarations(function, root);
+    size_t *seq_number = calloc(1,sizeof(size_t));
+    int result = bind_declarations(function, root, seq_number);
+    free(seq_number);
     if (result != 0)
     {
         printf("Couldn't bind local variables\n");
@@ -235,7 +237,7 @@ void bind_names(symbol_t *function, node_t *root)
 /**
  * Traverses syntax tree to find all local variables. Also updates string table.
  **/
-int bind_declarations(symbol_t *function, node_t *root)
+int bind_declarations(symbol_t *function, node_t *root, size_t* seq_num )
 {
     if (root == NULL)
     {
@@ -245,7 +247,7 @@ int bind_declarations(symbol_t *function, node_t *root)
     {
         for (int i = 0; i < root->n_children; i++)
         {
-            bind_declarations(function, root->children[i]);
+            bind_declarations(function, root->children[i], seq_num);
         }
         return 0;
     }
@@ -261,12 +263,13 @@ int bind_declarations(symbol_t *function, node_t *root)
             symbol_t *var = malloc(sizeof(symbol_t));
             var->name = strdup(id_data->data);
             var->type = SYM_LOCAL_VAR;
-            var->seq = i;
+            var->seq = *seq_num;
             var->nparms = 0;
             var->locals = NULL;
             var->node = id_data;
             id_data->entry = var;
-            tlhash_insert(function->locals, var->name, strlen(var->name), var);
+            tlhash_insert(function->locals, seq_num, sizeof(size_t), var);
+            *seq_num += 1;
         }
         break;
     }
@@ -274,11 +277,12 @@ int bind_declarations(symbol_t *function, node_t *root)
     {
         if (stringc >= n_string_list)
         {
+            string_list = realloc(string_list, n_string_list * 2 * sizeof(char*));
             if (string_list == NULL)
             {
                 return -1;
             }
-            n_string_list += 1;
+            n_string_list *= 2;
         }
         string_list[stringc] = root->data;
         root->data = malloc(sizeof(stringc));

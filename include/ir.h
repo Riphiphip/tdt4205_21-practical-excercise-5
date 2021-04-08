@@ -30,7 +30,7 @@ typedef struct s {
     tlhash_t *locals;
 } symbol_t;
 
-int bind_declarations(symbol_t *function, node_t *root);
+int bind_declarations(symbol_t *function, node_t *root, uint64_t *seq_num);
 void create_symbol_table(void);
 void print_symbol_table(void);
 void print_symbols(void);
