@@ -16,10 +16,9 @@ void print_bindings(node_t *root);
 void destroy_symbol_table(void);
 void find_globals(void);
 void bind_names(symbol_t *function, node_t *root);
-void destroy_symtab(void);
+void destroy_symtab(tlhash_t *symtab);
 
-void
-create_symbol_table ( void )
+void create_symbol_table(void)
 {
   find_globals();
   size_t n_globals = tlhash_size ( global_names );
@@ -137,7 +136,7 @@ print_bindings ( node_t *root )
 void
 destroy_symbol_table ( void )
 {
-      destroy_symtab();
+      destroy_symtab(global_names);
 }
 
 
@@ -164,58 +163,59 @@ void find_globals ( void )
         {
             case DECLARATION:
             {
-                 // Look for variable lists inside global variable declarations
-                 for (int j = 0; j < global_node->n_children; j++)
-                 {
-                    node_t *global_child = global_node->children[j];
-                    if (global_child->type != VARIABLE_LIST)
-                       continue;
+                // Look for variable lists inside global variable declarations
+                for (int j = 0; j < global_node->n_children; j++)
+                {
+                   node_t *global_child = global_node->children[j];
+                   if (global_child->type != VARIABLE_LIST)
+                      continue;
 
-                    // Add all global identifiers to the symbol table
-                    for (int k = 0; k < global_child->n_children; k++)
-                    {
-                        node_t *identifier = global_child->children[k];
-                        symbol_t *symbol = (symbol_t *) malloc(sizeof(symbol_t));
-                        symbol->name = strdup(identifier->data);
-                        symbol->type = SYM_GLOBAL_VAR;
-                        symbol->node = identifier;
+                   // Add all global identifiers to the symbol table
+                   for (int k = 0; k < global_child->n_children; k++)
+                   {
+                       node_t *identifier = global_child->children[k];
+                       symbol_t *symbol = (symbol_t *) malloc(sizeof(symbol_t));
+                       symbol->name = strdup(identifier->data);
+                       symbol->type = SYM_GLOBAL_VAR;
+                       symbol->node = identifier;
+                       symbol->locals = NULL;
 
-                        // Insert the symbol into the globals symbol table
-                        tlhash_insert(global_names, symbol->name, strlen(symbol->name), symbol);
+                       // Insert the symbol into the globals symbol table
+                       tlhash_insert(global_names, symbol->name, strlen(symbol->name), symbol);
 
-                        // Update the node to have a pointer to its symbol table entry
-                        identifier->entry = symbol;
-                    }
-                 }
-                 break;
+                       // Update the node to have a pointer to its symbol table entry
+                       identifier->entry = symbol;
+                   }
+                }
+                break;
             }
 
             case FUNCTION:
             {
-                 // Function declarations should look for a function name identifier
-                 // Finding parameter symbols is left for bind_names, although we *could* do it here
-                 for (int j = 0; j < global_node->n_children; j++)
-                 {
-                     node_t *global_child = global_node->children[j];
-                     // Function name
-                     if (global_child->type == IDENTIFIER_DATA)
-                     {
-                         symbol_t *func_symbol = (symbol_t *) malloc(sizeof(symbol_t));
-                         func_symbol->name = strdup(global_child->data);
-                         func_symbol->type = SYM_FUNCTION;
-                         func_symbol->node = global_node;
-                         func_symbol->nparms = 0;
-                         // Alloc and init a new hashtable for function locals
-                         func_symbol->locals = (tlhash_t *) malloc(sizeof(tlhash_t));
-                         tlhash_init(func_symbol->locals, 64);
+                // Function declarations should look for a function name identifier
+                // Finding parameter symbols is left for bind_names, although we *could* do it here
+                for (int j = 0; j < global_node->n_children; j++)
+                {
+                    node_t *global_child = global_node->children[j];
+                    // Function name
+                    if (global_child->type == IDENTIFIER_DATA)
+                    {
+                       symbol_t *func_symbol = (symbol_t *) malloc(sizeof(symbol_t));
+                       func_symbol->name = strdup(global_child->data);
+                       func_symbol->type = SYM_FUNCTION;
+                       func_symbol->node = global_node;
+                       func_symbol->nparms = 0;
+                       // Alloc and init a new hashtable for function locals
+                       func_symbol->locals = (tlhash_t *) malloc(sizeof(tlhash_t));
+                       tlhash_init(func_symbol->locals, 64);
 
-                         // Insert into the globals table
-                         tlhash_insert(global_names, func_symbol->name, strlen(func_symbol->name), func_symbol);
+                       // Insert into the globals table
+                       tlhash_insert(global_names, func_symbol->name, strlen(func_symbol->name), func_symbol);
 
-                         global_child->entry = func_symbol;
-                         break;
-                     }
-                 }
+                       global_child->entry = func_symbol;
+                       break;
+                    }
+                }
                 break;
             }
         }
@@ -227,7 +227,33 @@ bind_names ( symbol_t *function, node_t *root )
 {
 }
 
-void
-destroy_symtab ( void )
+void destroy_symtab (tlhash_t *symtab)
 {
+    // tlhash_size returns the amount of elements in the hash table, each of which has an associated (string) key
+    size_t symtable_size = tlhash_size(symtab);
+    symbol_t **symbols = (symbol_t **) calloc(symtable_size, sizeof(symbol_t *));
+    tlhash_values(symtab, (void **)symbols);
+
+    for (int k = 0; k < symtable_size; k++)
+    {
+        symbol_t *symbol = symbols[k];
+
+        // Remove the reference to the symbol from the corresponding node
+        symbol->node->entry = NULL;
+        // Free all allocated data from the symbol
+        free(symbol->name);
+        // Recursively destroy local symtabs
+        if (symbol->locals != NULL)
+        {
+            destroy_symtab(symbol->locals);
+        }
+
+        // Free the symbol itself
+        free(symbol);
+    }
+
+    free(symbols);
+    // Finally, finalize and free the symtable itself
+    tlhash_finalize(symtab);
+    free(symtab);
 }

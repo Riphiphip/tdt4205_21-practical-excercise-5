@@ -15,13 +15,13 @@ int
 main ( int argc, char **argv )
 {
     yyparse();
-    simplify_tree ( &root, root );
-    node_print ( root, 0 );
+    simplify_tree(&root, root);
+    node_print(root, 0);
 
     create_symbol_table();
 	print_symbol_table();
 
-    destroy_subtree ( root );
-	// call function to destroy symbol table
+    destroy_subtree(root);
+    destroy_symbol_table();
 
 }
