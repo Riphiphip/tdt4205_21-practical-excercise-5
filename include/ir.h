@@ -2,7 +2,7 @@
 #define IR_H
 
 #define LOCALS_BUCKET_COUNT 64
-
+#define LINK_DECLARATIONS 0
 /* This is the tree node structure */
 typedef struct n
 {
