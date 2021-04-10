@@ -151,31 +151,26 @@ void find_globals(void)
             // Look for variable lists inside global variable declarations
             for (int j = 0; j < global_node->n_children; j++)
             {
-                // Look for variable lists inside global variable declarations
-                for (int j = 0; j < global_node->n_children; j++)
+                node_t *global_child = global_node->children[j];
+                if (global_child->type != VARIABLE_LIST)
+                    continue;
+
+                // Add all global identifiers to the symbol table
+                for (int k = 0; k < global_child->n_children; k++)
                 {
-                    node_t *global_child = global_node->children[j];
-                    if (global_child->type != VARIABLE_LIST)
-                        continue;
+                    node_t *identifier = global_child->children[k];
+                    symbol_t *symbol = (symbol_t *)malloc(sizeof(symbol_t));
+                    symbol->name = strdup(identifier->data);
+                    symbol->type = SYM_GLOBAL_VAR;
+                    symbol->node = identifier;
+                    symbol->locals = NULL;
 
-                    // Add all global identifiers to the symbol table
-                    for (int k = 0; k < global_child->n_children; k++)
-                    {
-                        node_t *identifier = global_child->children[k];
-                        symbol_t *symbol = (symbol_t *)malloc(sizeof(symbol_t));
-                        symbol->name = strdup(identifier->data);
-                        symbol->type = SYM_GLOBAL_VAR;
-                        symbol->node = identifier;
-                        symbol->locals = NULL;
+                    // Insert the symbol into the globals symbol table
+                    tlhash_insert(global_names, symbol->name, strlen(symbol->name), symbol);
 
-                        // Insert the symbol into the globals symbol table
-                        tlhash_insert(global_names, symbol->name, strlen(symbol->name), symbol);
-
-                        // Update the node to have a pointer to its symbol table entry
-                        identifier->entry = symbol;
-                    }
+                    // Update the node to have a pointer to its symbol table entry
+                    identifier->entry = symbol;
                 }
-                break;
             }
             break;
         }
