@@ -175,10 +175,9 @@ void find_globals(void)
                     tlhash_insert(global_names, key, key_len, symbol);
                     free(key);
                     // Update the node to have a pointer to its symbol table entry
-                    if (LINK_DECLARATIONS)
-                    {
-                        identifier->entry = symbol;
-                    }
+                    #ifdef LINK_DECLARATIONS
+                    identifier->entry = symbol;
+                    #endif
                 }
             }
             break;
@@ -210,10 +209,9 @@ void find_globals(void)
                     // Insert the symbol into the globals symbol table
                     tlhash_insert(global_names, key, key_len, func_symbol);
                     free(key);
-                    if (LINK_DECLARATIONS)
-                    {
-                        global_child->entry = func_symbol;
-                    }
+                    #ifdef LINK_DECLARATIONS
+                    global_child->entry = func_symbol;
+                    #endif
                     break;
                 }
             }
@@ -250,10 +248,9 @@ void bind_names(symbol_t *function, node_t *root)
             param->nparms = 0;
             param->locals = NULL;
             param->node = param_node;
-            if (LINK_DECLARATIONS)
-            {
-                param_node->entry = param;
-            }
+            #ifdef LINK_DECLARATIONS
+            param_node->entry = param;
+            #endif
             void *key = get_id_key(&scope, param->name);
             uint64_t key_len = get_key_length(&scope, param->name);
             tlhash_insert(function->locals, key, key_len, param);
@@ -301,10 +298,9 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
             var->nparms = 0;
             var->locals = NULL;
             var->node = id_data;
-            if (LINK_DECLARATIONS)
-            {
-                id_data->entry = var;
-            }
+            #ifdef LINK_DECLARATIONS
+            id_data->entry = var;
+            #endif
 
             // Hash the local variable into the symbol table based on both identifier and scope
             void *key = get_id_key(scope_stack, var->name);
