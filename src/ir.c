@@ -266,6 +266,7 @@ void bind_names(symbol_t *function, node_t *root)
             void *key = get_id_key(&scope, param->name);
             uint64_t key_len = get_key_length(&scope, param->name);
             tlhash_insert(function->locals, key, key_len, param);
+            free(key);
         }
     }
 
