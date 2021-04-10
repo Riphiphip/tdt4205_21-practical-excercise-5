@@ -210,8 +210,10 @@ void find_globals(void)
 
 void bind_names(symbol_t *function, node_t *root)
 {
+    // Parameters are given as the 2nd child in a VARIABLE_LIST node
     node_t *param_list = root->children[1];
     int n_params = 0;
+    // If the param list is null, that means the function takes no arguments
     if (param_list != NULL)
     {
         n_params = param_list->n_children;
@@ -230,13 +232,14 @@ void bind_names(symbol_t *function, node_t *root)
             tlhash_insert(function->locals, param->name, strlen(param->name) + 1, param);
         }
     }
-    size_t *seq_number = calloc(1, sizeof(size_t));
-    scope_id++;
+
+    size_t *seq_number = (size_t *) calloc(1, sizeof(size_t));
+
     scope_frame scope;
     scope.depth = 1;
     scope.enclosing = NULL;
-    scope.value = scope_id;
-    scope_id++;
+    scope.value = scope_id++;
+
     int result = bind_declarations(function, root, seq_number, &scope);
     free(seq_number);
     if (result != 0)
@@ -252,19 +255,19 @@ void bind_names(symbol_t *function, node_t *root)
 int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_frame *scope_stack)
 {
     if (root == NULL)
-    {
         return 0;
-    }
+
+    // When entering a new block, create a new scope for it
     if (root->type == BLOCK)
     {
         scope_frame new_scope;
         new_scope.enclosing = scope_stack;
-        new_scope.value = scope_id;
+        new_scope.value = scope_id++;
         new_scope.depth = scope_stack->depth + 1;
-        scope_id++;
         scope_stack = &new_scope;
     }
 
+    // Recursively bind symbols in children
     for (int i = 0; i < root->n_children; i++)
     {
         if (bind_declarations(function, root->children[i], seq_num, scope_stack))
@@ -273,6 +276,7 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
         };
     }
 
+    // Actually perform the binding on various types of nodes
     switch (root->type)
     {
     case DECLARATION:
@@ -284,16 +288,17 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
             symbol_t *var = malloc(sizeof(symbol_t));
             var->name = strdup(id_data->data);
             var->type = SYM_LOCAL_VAR;
-            var->seq = *seq_num;
+            var->seq = *seq_num++;
             var->nparms = 0;
             var->locals = NULL;
             var->node = id_data;
             id_data->entry = var;
+
+            // Hash the local variable into the symbol table based on both identifier and scope
             void *key = get_id_key(scope_stack, var->name);
             uint64_t key_len = get_key_length(scope_stack, var->name);
             tlhash_insert(function->locals, key, key_len, var);
             free(key);
-            *seq_num += 1;
         }
         break;
     }
@@ -306,9 +311,12 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
                 return -1;
             }
 
+            // Dynamically increase string list size as needed
             n_string_list *= 2;
             string_list = realloc(string_list, n_string_list * sizeof(char *));
         }
+
+        // Move the string from the node data into the string list and replace the node data with its ID
         string_list[stringc] = root->data;
         root->data = malloc(sizeof(size_t));
         *(size_t *)root->data = stringc;
@@ -319,7 +327,7 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
     {
         void *key = get_id_key(scope_stack, root->data);
         uint64_t key_len = get_key_length(scope_stack, root->data);
-        void **symbol_ptr = malloc(sizeof(symbol_t **));
+        void **symbol_ptr = malloc(sizeof(symbol_t *));
         int result = tlhash_lookup(function->locals, key, key_len, symbol_ptr);
         if (result == TLHASH_ENOENT)
         {
@@ -334,21 +342,28 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
     return 0;
 }
 
+// Constructs a unique key for a variable identifier based on its scope
+// I.e. a key that (hopefully) won't cause hashtable collisions across scopes
 void *get_id_key(scope_frame *scope, char *id)
 {
     void *key = malloc(get_key_length(scope, id));
     scope_frame *s = scope;
     for (int i = 0; s != NULL; i++)
     {
-        *(uint64_t *)((size_t)key + i * sizeof(uint64_t)) = s->value;
+        // Place each scope ID (a uint64_t) after each other in the malloced memory region
+        // This is done to construct a unique "scope prefix" for the key
+        *(uint64_t *)(key + i * sizeof(uint64_t)) = s->value;
         s = s->enclosing;
     }
-    strcpy((char*)((size_t)key + scope->depth * sizeof(uint64_t)), id);
+    // Finally, place the identifier name after the scope prefix
+    strcpy((char*)(key + scope->depth * sizeof(uint64_t)), id);
     return key;
 }
 
+// Returns the byte length of the unique key for the given identifier, based on the given scope
 uint64_t get_key_length(scope_frame *scope, char *id)
 {
+    // Each scope ID is a uint64_t, and there are scope->depth such IDs
     return sizeof(uint64_t) * scope->depth + strlen(id) + 1;
 }
 
