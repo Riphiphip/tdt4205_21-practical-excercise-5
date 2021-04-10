@@ -251,12 +251,14 @@ void bind_names(symbol_t *function, node_t *root)
             #ifdef LINK_DECLARATIONS
             param_node->entry = param;
             #endif
+
             void *key = get_id_key(&scope, param->name);
             uint64_t key_len = get_key_length(&scope, param->name);
             tlhash_insert(function->locals, key, key_len, param);
         }
     }
 
+    // calloc sets the allocated region to 0 for us, so *seq_number = 0 right off the bat
     size_t *seq_number = (size_t *) calloc(1, sizeof(size_t));
     int result = bind_declarations(function, root, seq_number, &scope);
     free(seq_number);
@@ -286,7 +288,8 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
     }
     case DECLARATION:
     {
-        first_child = root->n_children; //Skips linking declarations
+        // Skips linking declarations
+        first_child = root->n_children;
         node_t *var_list = root->children[0];
         for (int i = 0; i < var_list->n_children; i++)
         {
@@ -335,6 +338,7 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
     {
         int result;
         void **symbol_ptr = malloc(sizeof(symbol_t *));
+        // Move up through scopes, looking for the closest declaration of the variable being used
         scope_frame *s = scope_stack;
         do
         {
@@ -342,10 +346,11 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
             uint64_t key_len = get_key_length(s, root->data);
             result = tlhash_lookup(function->locals, key, key_len, symbol_ptr);
             free(key);
-            if (result)
+            if (result == TLHASH_ENOENT)
                 s = s->enclosing;
         } while (result && s != NULL);
 
+        // If we didn't find a declaration in local scopes, try the global scope
         if (result == TLHASH_ENOENT)
         {
             void *key = get_id_key(&global_scope, root->data);
@@ -354,17 +359,22 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
             free(key);
         }
 
+        // We found no declaration of the variable before this point
+        // So the variable is being used before its declaration (if it even is declared anywhere)
         if (*symbol_ptr == NULL)
         {
             printf("\033[31mSymbol \"%s\" used before declaration\033[0m\n", (char *)root->data);
             return -1;
         }
+
+        // Link it to the appropriate symbol table entry
         root->entry = *symbol_ptr;
         free(symbol_ptr);
         break;
     }
     }
 
+    // New block, new scope
     if (root->type == BLOCK)
     {
         scope_frame new_scope;
@@ -375,6 +385,7 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
         scope_stack = &new_scope;
     }
 
+    // Recursively traverse the tree, performing binding in all children
     for (int i = first_child; i < root->n_children; i++)
     {
         if (root->children[i] != NULL)
