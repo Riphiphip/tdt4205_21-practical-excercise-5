@@ -119,6 +119,9 @@ void print_bindings(node_t *root)
         print_bindings(root->children[c]);
 }
 
+/**
+ * Destroys entire symbol table
+ */
 void destroy_symbol_table(void)
 {
     destroy_symtab(global_names);
@@ -129,6 +132,9 @@ void destroy_symbol_table(void)
     free(string_list);
 }
 
+/**
+ * Finds and binds all global identfiers
+ */
 void find_globals(void)
 {
     // Initialize the global symbol table because apparently that wasn't done in the skeleton code 😡
@@ -221,6 +227,11 @@ void find_globals(void)
     }
 }
 
+/**
+ * Binds all symbol references in function.
+ * @param function Function symbol whose local scope is to be populated
+ * @param root Syntax tree node representing function
+ */
 void bind_names(symbol_t *function, node_t *root)
 {
     scope_id++;
@@ -270,7 +281,13 @@ void bind_names(symbol_t *function, node_t *root)
 }
 
 /**
- * Traverses syntax tree to find all local variables. Also updates string table.
+ * Traverses syntax tree to create symbols for all local variables 
+ * and bind all symbol references. Also updates string table.
+ * @param function Function symbol to begin with
+ * @param root Syntax tree node representing `function`
+ * @param seq_num Memory area used for generating unique sequence numbers
+ * @param scope_stack Initial scope. Should have depth=1, enclosing=NULL and a unique value
+ * @returns 0 on success 
  **/
 int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_frame *scope_stack)
 {
@@ -400,8 +417,12 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
     return 0;
 }
 
-// Constructs a unique key for a variable identifier based on its scope
-// I.e. a key that (hopefully) won't cause hashtable collisions across scopes
+/** 
+ * Constructs a unique key for a variable identifier based on its scope
+ * I.e. a key that (hopefully) won't cause hashtable collisions across scopes.
+ * @param scope Scope of identifier
+ * @param id Identifier string
+*/
 void *get_id_key(scope_frame *scope, char *id)
 {
     void *key = malloc(get_key_length(scope, id));
@@ -419,13 +440,21 @@ void *get_id_key(scope_frame *scope, char *id)
     return key;
 }
 
-// Returns the byte length of the unique key for the given identifier, based on the given scope
+/**
+ * Returns the byte length of the unique key for the given identifier, based on the given scope
+ * @param scope Scope of identifier
+ * @param id Identifier string
+ */
 uint64_t get_key_length(scope_frame *scope, char *id)
 {
     // Each scope ID is a uint64_t, and there are scope->depth such IDs
     return sizeof(uint64_t) * scope->depth + strlen(id) + 1;
 }
 
+/**
+ * Destroys symbol table and frees associated resources
+ * @param symtab Symbol table to be destroyed
+ */
 void destroy_symtab(tlhash_t *symtab)
 {
     // tlhash_size returns the amount of elements in the hash table, each of which has an associated (string) key
