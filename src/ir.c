@@ -1,6 +1,6 @@
-#include <vslc.h>
-#include <ir.h>
-#include <tlhash.h>
+#include "vslc.h"
+#include "ir.h"
+#include "tlhash.h"
 
 // Externally visible, for the generator
 extern tlhash_t *global_names;
@@ -9,6 +9,10 @@ extern size_t n_string_list, stringc;
 
 uint64_t func_count = 0;
 uint64_t scope_id = 0;
+scope_frame global_scope = {
+    .enclosing = NULL,
+    .value = 0,
+    .depth = 0};
 /* External interface */
 
 void create_symbol_table(void)
@@ -151,31 +155,31 @@ void find_globals(void)
             // Look for variable lists inside global variable declarations
             for (int j = 0; j < global_node->n_children; j++)
             {
-                // Look for variable lists inside global variable declarations
-                for (int j = 0; j < global_node->n_children; j++)
+                node_t *global_child = global_node->children[j];
+                if (global_child->type != VARIABLE_LIST)
+                    continue;
+
+                // Add all global identifiers to the symbol table
+                for (int k = 0; k < global_child->n_children; k++)
                 {
-                    node_t *global_child = global_node->children[j];
-                    if (global_child->type != VARIABLE_LIST)
-                        continue;
+                    node_t *identifier = global_child->children[k];
+                    symbol_t *symbol = (symbol_t *)malloc(sizeof(symbol_t));
+                    symbol->name = strdup(identifier->data);
+                    symbol->type = SYM_GLOBAL_VAR;
+                    symbol->node = identifier;
+                    symbol->locals = NULL;
 
-                    // Add all global identifiers to the symbol table
-                    for (int k = 0; k < global_child->n_children; k++)
+                    void *key = get_id_key(&global_scope, symbol->name);
+                    uint64_t key_len = get_key_length(&global_scope, symbol->name);
+                    // Insert the symbol into the globals symbol table
+                    tlhash_insert(global_names, key, key_len, symbol);
+                    free(key);
+                    // Update the node to have a pointer to its symbol table entry
+                    if (LINK_DECLARATIONS)
                     {
-                        node_t *identifier = global_child->children[k];
-                        symbol_t *symbol = (symbol_t *)malloc(sizeof(symbol_t));
-                        symbol->name = strdup(identifier->data);
-                        symbol->type = SYM_GLOBAL_VAR;
-                        symbol->node = identifier;
-                        symbol->locals = NULL;
-
-                        // Insert the symbol into the globals symbol table
-                        tlhash_insert(global_names, symbol->name, strlen(symbol->name), symbol);
-
-                        // Update the node to have a pointer to its symbol table entry
                         identifier->entry = symbol;
                     }
                 }
-                break;
             }
             break;
         }
@@ -201,9 +205,15 @@ void find_globals(void)
                     tlhash_init(func_symbol->locals, 64);
 
                     // Insert into the globals table
-                    tlhash_insert(global_names, func_symbol->name, strlen(func_symbol->name) + 1, func_symbol);
-
-                    global_child->entry = func_symbol;
+                    void *key = get_id_key(&global_scope, func_symbol->name);
+                    uint64_t key_len = get_key_length(&global_scope, func_symbol->name);
+                    // Insert the symbol into the globals symbol table
+                    tlhash_insert(global_names, key, key_len, func_symbol);
+                    free(key);
+                    if (LINK_DECLARATIONS)
+                    {
+                        global_child->entry = func_symbol;
+                    }
                     break;
                 }
             }
@@ -215,6 +225,13 @@ void find_globals(void)
 
 void bind_names(symbol_t *function, node_t *root)
 {
+    scope_id++;
+    scope_frame scope;
+    scope.depth = 1;
+    scope.enclosing = NULL;
+    scope.value = scope_id;
+    scope_id++;
+
     node_t *param_list = root->children[1];
     int n_params = 0;
     if (param_list != NULL)
@@ -231,17 +248,17 @@ void bind_names(symbol_t *function, node_t *root)
             param->nparms = 0;
             param->locals = NULL;
             param->node = param_node;
-            param_node->entry = param;
-            tlhash_insert(function->locals, param->name, strlen(param->name) + 1, param);
+            if (LINK_DECLARATIONS)
+            {
+                param_node->entry = param;
+            }
+            void *key = get_id_key(&scope, param->name);
+            uint64_t key_len = get_key_length(&scope, param->name);
+            tlhash_insert(function->locals, key, key_len, param);
         }
     }
+
     size_t *seq_number = calloc(1, sizeof(size_t));
-    scope_id++;
-    scope_frame scope;
-    scope.depth = 1;
-    scope.enclosing = NULL;
-    scope.value = scope_id;
-    scope_id++;
     int result = bind_declarations(function, root, seq_number, &scope);
     free(seq_number);
     if (result != 0)
@@ -256,32 +273,20 @@ void bind_names(symbol_t *function, node_t *root)
  **/
 int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_frame *scope_stack)
 {
-    if (root == NULL)
-    {
-        return 0;
-    }
-    if (root->type == BLOCK)
-    {
-        scope_frame new_scope;
-        new_scope.enclosing = scope_stack;
-        new_scope.value = scope_id;
-        new_scope.depth = scope_stack->depth + 1;
-        scope_id++;
-        scope_stack = &new_scope;
-    }
-
-    for (int i = 0; i < root->n_children; i++)
-    {
-        if (bind_declarations(function, root->children[i], seq_num, scope_stack))
-        {
-            return -1;
-        };
-    }
+    // Says what child of root recursion should begin at
+    int first_child = 0;
 
     switch (root->type)
     {
+    case FUNCTION:
+    {
+        // Skips linking function definition and parameter declarations
+        first_child = 2;
+        break;
+    }
     case DECLARATION:
     {
+        first_child = root->n_children; //Skips linking declarations
         node_t *var_list = root->children[0];
         for (int i = 0; i < var_list->n_children; i++)
         {
@@ -293,7 +298,10 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
             var->nparms = 0;
             var->locals = NULL;
             var->node = id_data;
-            id_data->entry = var;
+            if (LINK_DECLARATIONS)
+            {
+                id_data->entry = var;
+            }
             void *key = get_id_key(scope_stack, var->name);
             uint64_t key_len = get_key_length(scope_stack, var->name);
             tlhash_insert(function->locals, key, key_len, var);
@@ -322,20 +330,57 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
     }
     case IDENTIFIER_DATA:
     {
-        void *key = get_id_key(scope_stack, root->data);
-        uint64_t key_len = get_key_length(scope_stack, root->data);
+        int result;
         void **symbol_ptr = malloc(sizeof(symbol_t **));
-        int result = tlhash_lookup(function->locals, key, key_len, symbol_ptr);
+        scope_frame *s = scope_stack;
+        do
+        {
+            void *key = get_id_key(s, root->data);
+            uint64_t key_len = get_key_length(s, root->data);
+            result = tlhash_lookup(function->locals, key, key_len, symbol_ptr);
+            free(key);
+            if (result)
+                s = s->enclosing;
+        } while (result && s != NULL);
         if (result == TLHASH_ENOENT)
         {
-            result = tlhash_lookup(global_names, root->data, strlen(root->data), symbol_ptr);
+            void *key = get_id_key(&global_scope, root->data);
+            uint64_t key_len = get_key_length(&global_scope, root->data);
+            result = tlhash_lookup(global_names, key, key_len, symbol_ptr);
+            free(key);
         }
-        free(key);
+        if (*symbol_ptr == NULL)
+        {
+            printf("\033[31mSymbol \"%s\" used before declaration\033[0m\n", (char *)root->data);
+            return -1;
+        }
         root->entry = *symbol_ptr;
         free(symbol_ptr);
         break;
     }
     }
+
+    if (root->type == BLOCK)
+    {
+        scope_frame new_scope;
+        new_scope.enclosing = scope_stack;
+        new_scope.value = scope_id;
+        new_scope.depth = scope_stack->depth + 1;
+        scope_id++;
+        scope_stack = &new_scope;
+    }
+
+    for (int i = first_child; i < root->n_children; i++)
+    {
+        if (root->children[i] != NULL)
+        {
+            if (bind_declarations(function, root->children[i], seq_num, scope_stack))
+            {
+                return -1;
+            };
+        }
+    }
+
     return 0;
 }
 
@@ -348,7 +393,7 @@ void *get_id_key(scope_frame *scope, char *id)
         *(uint64_t *)((size_t)key + i * sizeof(uint64_t)) = s->value;
         s = s->enclosing;
     }
-    strcpy((char*)((size_t)key + scope->depth * sizeof(uint64_t)), id);
+    strcpy((char *)((size_t)key + scope->depth * sizeof(uint64_t)), id);
     return key;
 }
 
