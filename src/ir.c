@@ -232,8 +232,10 @@ void bind_names(symbol_t *function, node_t *root)
     scope.value = scope_id;
     scope_id++;
 
+    // Parameters are given as the 2nd child in a VARIABLE_LIST node
     node_t *param_list = root->children[1];
     int n_params = 0;
+    // If the param list is null, that means the function takes no arguments
     if (param_list != NULL)
     {
         n_params = param_list->n_children;
@@ -258,7 +260,7 @@ void bind_names(symbol_t *function, node_t *root)
         }
     }
 
-    size_t *seq_number = calloc(1, sizeof(size_t));
+    size_t *seq_number = (size_t *) calloc(1, sizeof(size_t));
     int result = bind_declarations(function, root, seq_number, &scope);
     free(seq_number);
     if (result != 0)
@@ -276,6 +278,7 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
     // Says what child of root recursion should begin at
     int first_child = 0;
 
+    // Actually perform the binding on various types of nodes
     switch (root->type)
     {
     case FUNCTION:
@@ -294,7 +297,7 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
             symbol_t *var = malloc(sizeof(symbol_t));
             var->name = strdup(id_data->data);
             var->type = SYM_LOCAL_VAR;
-            var->seq = *seq_num;
+            var->seq = *seq_num++;
             var->nparms = 0;
             var->locals = NULL;
             var->node = id_data;
@@ -302,11 +305,12 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
             {
                 id_data->entry = var;
             }
+
+            // Hash the local variable into the symbol table based on both identifier and scope
             void *key = get_id_key(scope_stack, var->name);
             uint64_t key_len = get_key_length(scope_stack, var->name);
             tlhash_insert(function->locals, key, key_len, var);
             free(key);
-            *seq_num += 1;
         }
         break;
     }
@@ -319,9 +323,12 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
                 return -1;
             }
 
+            // Dynamically increase string list size as needed
             n_string_list *= 2;
             string_list = realloc(string_list, n_string_list * sizeof(char *));
         }
+
+        // Move the string from the node data into the string list and replace the node data with its ID
         string_list[stringc] = root->data;
         root->data = malloc(sizeof(size_t));
         *(size_t *)root->data = stringc;
@@ -331,7 +338,7 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
     case IDENTIFIER_DATA:
     {
         int result;
-        void **symbol_ptr = malloc(sizeof(symbol_t **));
+        void **symbol_ptr = malloc(sizeof(symbol_t *));
         scope_frame *s = scope_stack;
         do
         {
@@ -342,6 +349,7 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
             if (result)
                 s = s->enclosing;
         } while (result && s != NULL);
+
         if (result == TLHASH_ENOENT)
         {
             void *key = get_id_key(&global_scope, root->data);
@@ -349,6 +357,7 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
             result = tlhash_lookup(global_names, key, key_len, symbol_ptr);
             free(key);
         }
+
         if (*symbol_ptr == NULL)
         {
             printf("\033[31mSymbol \"%s\" used before declaration\033[0m\n", (char *)root->data);
@@ -384,21 +393,29 @@ int bind_declarations(symbol_t *function, node_t *root, size_t *seq_num, scope_f
     return 0;
 }
 
+// Constructs a unique key for a variable identifier based on its scope
+// I.e. a key that (hopefully) won't cause hashtable collisions across scopes
 void *get_id_key(scope_frame *scope, char *id)
 {
     void *key = malloc(get_key_length(scope, id));
     scope_frame *s = scope;
     for (int i = 0; s != NULL; i++)
     {
+        // Place each scope ID (a uint64_t) after each other in the malloced memory region
+        // This is done to construct a unique "scope prefix" for the key
+        // Ignore the size_t cast. Compiler was complaining, it doesn't actually mean anything
         *(uint64_t *)((size_t)key + i * sizeof(uint64_t)) = s->value;
         s = s->enclosing;
     }
+    // Finally, place the identifier name after the scope prefix
     strcpy((char *)((size_t)key + scope->depth * sizeof(uint64_t)), id);
     return key;
 }
 
+// Returns the byte length of the unique key for the given identifier, based on the given scope
 uint64_t get_key_length(scope_frame *scope, char *id)
 {
+    // Each scope ID is a uint64_t, and there are scope->depth such IDs
     return sizeof(uint64_t) * scope->depth + strlen(id) + 1;
 }
 
